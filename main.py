@@ -1,19 +1,19 @@
 import os, sys, csv
 from cryptography.fernet import Fernet
 
-def generate_key():
+def generate_key(): #Generate key for encryption
     return Fernet.generate_key()
 
 
 def encrypt_data(data, key):
-    cipher_suite = Fernet(key)
-    data_bytes = data.encode('utf-8')
-    encrypted_password = cipher_suite.encrypt(data_bytes)
+    cipher_suite = Fernet(key) #creates cipher with the key
+    data_bytes = data.encode('utf-8') #transforms data into bytes
+    encrypted_password = cipher_suite.encrypt(data_bytes) #encrypts the data
     return encrypted_password
 
 def decrypt_data(data, key):
-    cipher_suite = Fernet(key)
-    decrypted_password = cipher_suite.decrypt(data).decode('utf-8')
+    cipher_suite = Fernet(key) #creates cipher with the given key
+    decrypted_password = cipher_suite.decrypt(data).decode('utf-8') #decrypts and decodes the data
     return decrypted_password
 
 
@@ -26,6 +26,10 @@ def save_password(title, username, password, key):
             writer.writeheader()
         writer.writerow({'Title': title, 'Username': username, 'Password': password, 'Key': key.decode('utf-8')})
     print("Password saved")
+
+
+def update_info():
+    file_path = "passwords.csv"
 
 
 def read_passwords():
