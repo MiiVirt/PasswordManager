@@ -27,7 +27,7 @@ def save_password(title, username, password, key):
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if csvfile.tell() == 0:
             writer.writeheader()
-        writer.writerow({'Title': title, 'Username': username, 'Password': password, 'Key': key})
+        writer.writerow({'Title': title, 'Username': username, 'Password': password.decode('utf-8'), 'Key': key.decode('utf-8')})
     print("Password saved")
 
 
@@ -37,7 +37,7 @@ def read_passwords():
     with open(file_path, 'r', newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            data_list.append({'Title': row['Title'], 'Username': row['Username'], 'Password': row['Password'], 'Key': row['Key']})
+            data_list.append({'Title': row['Title'], 'Username': row['Username'], 'Password': row['Password'].encode('utf-8'), 'Key': row['Key'].encode('utf-8')})
     return data_list
 
 
