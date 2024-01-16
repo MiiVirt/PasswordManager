@@ -63,10 +63,30 @@ def edit_passwords(title, new_password):
                 writer.writerow(data_set)
 
 
+def delete_password(title):
+    file_path = "passwords.csv"
+    data_list = read_passwords()
+
+    # Filter out the entry with the specified title
+    updated_data = [data_set for data_set in data_list if data_set['Title'] != title]
+
+    # Write the modified data back to the file
+    with open(file_path, 'w', newline='') as csvfile:
+        fieldnames = ['Title', 'Username', 'Password', 'Key']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        # Write header only if the file is not empty
+        if csvfile.tell() == 0:
+            writer.writeheader()
+
+        writer.writerows(updated_data)
+
+
 def main():
     print("Press '1' to save new credentials")
     print("Press '2' to see all currently saved credentials")
     print("Press '3' to edit an existing credential")
+    print("Press '4' to delete existing credentials")
     response = input(": ")
     if response == '1':
         title = input("Type the title: ")
@@ -84,8 +104,9 @@ def main():
         update_title = input("What password would you like to edit? ")
         new_password = input("Enter the new password: ")
         edit_passwords(update_title, new_password)
-
-        return
+    elif response == '4':
+        title = input("What credentials would you like to delete? ")
+        delete_password(title)
 
 
 if __name__ == "__main__":
