@@ -1,0 +1,13 @@
+#TODO add Password generator
+#TODO add master password system with PassCrypt
+#TODO separate credentials and key to different save locations for security
+#TODO Commandline implementation with getpass to hide passwords
+#TODO Password strenght checker
+#TODO GUI
+#TODO 2FA
+#TODO SQL Database
+#TODO Error handling, upper/lower key handling
+#TODO Modify Username
+#TODO Credential categories and search
+#TODO Autofill
+#TODO File encryption
