@@ -37,8 +37,30 @@ def read_passwords():
     with open(file_path, 'r', newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            data_list.append({'Title': row['Title'], 'Username': row['Username'], 'Password': row['Password'].encode('utf-8'), 'Key': row['Key'].encode('utf-8')})
+            data_list.append({
+                'Title': row['Title'],
+                'Username': row['Username'],
+                'Password': row['Password'],
+                'Key': row['Key']
+            })
     return data_list
+
+def edit_passwords(title, new_password):
+    file_path = "passwords.csv"
+    data_list = read_passwords()
+
+    for data_set in data_list:
+        if data_set['Title'] == title:
+            key = data_set['Key']
+            encrypted_password = encrypt_data(new_password, key)
+            data_set['Password'] = encrypted_password.decode('utf-8')
+
+        with open(file_path, 'w', newline='') as csvfile:
+            fieldnames = ['Title', 'Username', 'Password', 'Key']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for data_set in data_list:
+                writer.writerow(data_set)
 
 
 def main():
@@ -52,19 +74,17 @@ def main():
         password = input("type the password:")
         key = generate_key()
         encrypted_data = encrypt_data(password, key)
-        save_password(title, username, encrypted_data, key) #NOTE encrypted_data and key are saved as bytes here
+        save_password(title, username, encrypted_data, key)
     elif response == '2':
         data_list = read_passwords()
-        passwords = []
-        keys = []
         for data_set in data_list:
-            passwords.append(data_set['Password'])
-            keys.append(data_set['Key'])
-        decrypted_passwords = [decrypt_data(password, key) for password, key in zip(passwords, keys)]
-        for decrypted_data in decrypted_passwords:
-            print(decrypted_data)
-
+            decrypted_password = decrypt_data(data_set['Password'], data_set['Key'])
+            print(f"Title: {data_set['Title']}, Username: {data_set['Username']}, Password: {decrypted_password.decode('utf-8')}")
     elif response == '3':
+        update_title = input("What password would you like to edit? ")
+        new_password = input("Enter the new password: ")
+        edit_passwords(update_title, new_password)
+
         return
 
 
