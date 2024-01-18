@@ -1,6 +1,18 @@
-import os, sys, csv
+import csv
 from cryptography.fernet import Fernet
 
+#TODO add Password generator
+#TODO add master password system with PassCrypt
+#TODO separate credentials and key to different save locations for security
+#TODO Commandline implementation with getpass to hide passwords
+#TODO Password strenght checker
+#TODO GUI
+#TODO 2FA
+#TODO SQL Database
+#TODO Error handling, upper/lower key handling
+#TODO Credential categories and search
+#TODO Autofill
+#TODO File encryption
 
 def generate_key(): #Generate key for encryption
     return Fernet.generate_key()
@@ -63,6 +75,21 @@ def edit_passwords(title, new_password):
                 writer.writerow(data_set)
 
 
+def edit_username(title, new_username):
+    file_path = "passwords.csv"
+    data_list = read_passwords()
+
+    for data_set in data_list:
+        if data_set['Title'] == title:
+            data_set['Username'] = new_username
+            with open(file_path, 'w', newline='') as csvfile:
+                fieldnames = ['Title', 'Username', 'Password', 'Key']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                for data_set in data_list:
+                    writer.writerow(data_set)
+
+
 def delete_password(title):
     file_path = "passwords.csv"
     data_list = read_passwords()
@@ -101,9 +128,21 @@ def main():
             decrypted_password = decrypt_data(data_set['Password'], data_set['Key'])
             print(f"Title: {data_set['Title']}, Username: {data_set['Username']}, Password: {decrypted_password.decode('utf-8')}")
     elif response == '3':
-        update_title = input("What password would you like to edit? ")
-        new_password = input("Enter the new password: ")
-        edit_passwords(update_title, new_password)
+        response2 = input("Press '1' to edit username and password, '2' to edit username or '3' to edit password: ")
+        if response2 == '1':
+            update_title = input("What credential would you like to edit? ")
+            new_username = input("Enter the new username: ")
+            new_password = input("Enter the new password: ")
+            edit_username(update_title, new_username)
+            edit_passwords(update_title, new_password)
+        elif response2 == '2':
+            update_title = input("What credential would you like to edit? ")
+            new_username = input("Enter the new username: ")
+            edit_username(update_title, new_username)
+        elif response2 == '3':
+            update_title = input("What credential would you like to edit? ")
+            new_password = input("Enter the new password: ")
+            edit_passwords(update_title, new_password)
     elif response == '4':
         title = input("What credentials would you like to delete? ")
         delete_password(title)
