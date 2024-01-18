@@ -1,4 +1,6 @@
 import csv
+import sys
+
 from cryptography.fernet import Fernet
 
 #TODO add Password generator
@@ -108,7 +110,25 @@ def delete_password(title):
 
         writer.writerows(updated_data)
 
-
+def check_password_strength(password):
+    error = 0
+    if len(password) < 8: #Check the lenght
+        print("Password needs to be at least 8 characters!")
+        error += 1
+    if any(char.isdigit() for char in password) == False: #Check if there is at least one number in password
+        print("There needs to be at least one numeral in the password!")
+        error += 1
+    if any(not char.isalnum() and not char.isspace() for char in password) == False: #Check that there's at least one symbol in password
+        print("There needs to be at least one symbol in the password!")
+        error += 1
+    if any(char.isupper() for char in password) == False: #Check if there's a uppercase letter in password
+        print("There needs to be at least one uppercase letter in password!")
+        error += 1
+    if any(char.islower() for char in password) == False: #Check if there's a lowercase letter in password
+        print("There needs to be at least one lowercase letter in password!")
+        error += 1
+    if error > 0:
+        sys.exit()
 def main():
     print("Press '1' to save new credentials")
     print("Press '2' to see all currently saved credentials")
@@ -119,6 +139,7 @@ def main():
         title = input("Type the title: ")
         username = input("Type the username: ")
         password = input("type the password:")
+        check_password_strength(password)
         key = generate_key()
         encrypted_data = encrypt_data(password, key)
         save_password(title, username, encrypted_data, key)
