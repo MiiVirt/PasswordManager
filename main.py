@@ -1,13 +1,11 @@
 import csv
 import sys
-
+from Password_Generator import generator
 from cryptography.fernet import Fernet
 
-#TODO add Password generator
 #TODO add master password system with PassCrypt
 #TODO separate credentials and key to different save locations for security
 #TODO Commandline implementation with getpass to hide passwords
-#TODO Password strenght checker
 #TODO GUI
 #TODO 2FA
 #TODO SQL Database
@@ -21,16 +19,15 @@ def generate_key(): #Generate key for encryption
 
 
 def encrypt_data(data, key):
-    cipher_suite = Fernet(key) #creates cipher with the key
-    data_bytes = data.encode('utf-8') #transforms data into bytes
-    encrypted_password = cipher_suite.encrypt(data_bytes) #encrypts the data
+    cipher_suite = Fernet(key) #Creates cipher with the key
+    data_bytes = data.encode('utf-8') #Transforms data into bytes
+    encrypted_password = cipher_suite.encrypt(data_bytes) #Encrypts the data
     return encrypted_password
 
 
 def decrypt_data(data, key):
-    cipher_suite = Fernet(key)
-    decrypted_data = cipher_suite.decrypt(data)
-    decrypted_password = decrypted_data
+    cipher_suite = Fernet(key) #Creates cipher with the key
+    decrypted_password = cipher_suite.decrypt(data) #Decrypts the data
     return decrypted_password
 
 
@@ -96,22 +93,20 @@ def delete_password(title):
     file_path = "passwords.csv"
     data_list = read_passwords()
 
-    # Filter out the entry with the specified title
-    updated_data = [data_set for data_set in data_list if data_set['Title'] != title]
+    updated_data = [data_set for data_set in data_list if data_set['Title'] != title] #Filter out the entry with the specified title
 
-    # Write the modified data back to the file
-    with open(file_path, 'w', newline='') as csvfile:
+    with open(file_path, 'w', newline='') as csvfile: #Write the modified data back to the file
         fieldnames = ['Title', 'Username', 'Password', 'Key']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-        # Write header only if the file is not empty
-        if csvfile.tell() == 0:
+        if csvfile.tell() == 0: #Write header only if the file is not empty
             writer.writeheader()
 
         writer.writerows(updated_data)
 
 def check_password_strength(password):
-    error = 0
+    error = 0 #Counter for problems with password
+
     if len(password) < 8: #Check the lenght
         print("Password needs to be at least 8 characters!")
         error += 1
@@ -127,7 +122,7 @@ def check_password_strength(password):
     if any(char.islower() for char in password) == False: #Check if there's a lowercase letter in password
         print("There needs to be at least one lowercase letter in password!")
         error += 1
-    if error > 0:
+    if error > 0: #If there has been at least one problem with the password, program closes.
         sys.exit()
 def main():
     print("Press '1' to save new credentials")
@@ -138,7 +133,12 @@ def main():
     if response == '1':
         title = input("Type the title: ")
         username = input("Type the username: ")
-        password = input("type the password:")
+        response2 = input("Would you like to automatically generated password? (y/n)").lower()
+        if response2 == 'n':
+            password = input("type the password: ")
+        elif response2 == 'y':
+            count_alphabet, count_numbers, count_symbols = generator.generate_random_numbers()
+            password = generator.password_generator(count_alphabet, count_numbers, count_symbols)
         check_password_strength(password)
         key = generate_key()
         encrypted_data = encrypt_data(password, key)
@@ -154,6 +154,7 @@ def main():
             update_title = input("What credential would you like to edit? ")
             new_username = input("Enter the new username: ")
             new_password = input("Enter the new password: ")
+            check_password_strength(new_password)
             edit_username(update_title, new_username)
             edit_passwords(update_title, new_password)
         elif response2 == '2':
@@ -163,6 +164,7 @@ def main():
         elif response2 == '3':
             update_title = input("What credential would you like to edit? ")
             new_password = input("Enter the new password: ")
+            check_password_strength(new_password)
             edit_passwords(update_title, new_password)
     elif response == '4':
         title = input("What credentials would you like to delete? ")
