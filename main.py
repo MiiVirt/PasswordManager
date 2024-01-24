@@ -1,6 +1,6 @@
-import csv
-import sys
+import csv, sys
 from Password_Generator import generator
+from Encoder import encoder
 from cryptography.fernet import Fernet
 
 #TODO add master password system with PassCrypt
@@ -124,13 +124,79 @@ def check_password_strength(password):
         error += 1
     if error > 0: #If there has been at least one problem with the password, program closes.
         sys.exit()
+
+
+def save_credentials(username, password, salt):
+    file_path = "credentials.csv"
+    credentials = read_credentials()
+    hashed_password = encoder.hash_data(password, salt)
+    with open(file_path, 'a', newline='') as csvfile:
+        fieldnames = ['username', 'password', 'salt']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        if csvfile.tell() == 0:
+            writer.writeheader()
+        writer.writerow({'username': username, 'password': hashed_password.decode('utf-8'), 'salt': salt.decode('utf-8')})
+    print("Credentials saved!")
+
+
+def read_credentials():
+    file_path = "credentials.csv"
+    credentials = []
+    with open(file_path, "r", newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            credentials.append({'username': row['username'], 'password': row['password'], 'salt': row['salt']})
+    return credentials
+
+
+
+def authenticate_user(users,username, password, salt):
+    if username in users:
+        stored_password = users[username]['password']
+        input_password = encoder.hash_data(password, salt)
+        if stored_password == input_password:
+            return True
+        return False
+
+
+def login():
+    #users = read_credentials()
+    while True:
+        print("Press '1' to login")
+        print("Press '2' to create a new user")
+        print("Press '3' to exit")
+        response = input(": ")
+        if response == '1':
+            username = input("Username: ")
+            password = input("Password: ")
+            credentials = read_credentials()
+            if username in credentials:
+                salt = credentials[username]['salt']
+                print(salt)
+                if authenticate_user(credentials, username, password, salt):
+                    print("Login successful!")
+                    break
+            else:
+                print("Login failed. Invalid username or password.")
+        elif response == '2':
+            username = input("Username: ")
+            password = input("Password: ")
+            salt = encoder.generate_random_16byte()
+            save_credentials(username, password, salt)
+            print("User created successfully!")
+        elif response == '3':
+            sys.exit()
+        else:
+            print("Invalid option. Please choose a valid option.")
+
 def main():
+    login()
     print("Press '1' to save new credentials")
     print("Press '2' to see all currently saved credentials")
     print("Press '3' to edit an existing credential")
     print("Press '4' to delete existing credentials")
-    response = input(": ")
-    if response == '1':
+    response1 = input(": ")
+    if response1 == '1':
         title = input("Type the title: ")
         username = input("Type the username: ")
         response2 = input("Would you like to automatically generated password? (y/n)").lower()
@@ -143,12 +209,12 @@ def main():
         key = generate_key()
         encrypted_data = encrypt_data(password, key)
         save_password(title, username, encrypted_data, key)
-    elif response == '2':
+    elif response1 == '2':
         data_list = read_passwords()
         for data_set in data_list:
             decrypted_password = decrypt_data(data_set['Password'], data_set['Key'])
             print(f"Title: {data_set['Title']}, Username: {data_set['Username']}, Password: {decrypted_password.decode('utf-8')}")
-    elif response == '3':
+    elif response1 == '3':
         response2 = input("Press '1' to edit username and password, '2' to edit username or '3' to edit password: ")
         if response2 == '1':
             update_title = input("What credential would you like to edit? ")
@@ -166,7 +232,7 @@ def main():
             new_password = input("Enter the new password: ")
             check_password_strength(new_password)
             edit_passwords(update_title, new_password)
-    elif response == '4':
+    elif response1 == '4':
         title = input("What credentials would you like to delete? ")
         delete_password(title)
 
