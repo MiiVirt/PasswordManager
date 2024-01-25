@@ -1,4 +1,4 @@
-import csv, sys
+import csv, sys, ast, base64
 from Password_Generator import generator
 from Encoder import encoder
 from cryptography.fernet import Fernet
@@ -129,13 +129,19 @@ def check_password_strength(password):
 def save_credentials(username, password, salt):
     file_path = "credentials.csv"
     credentials = read_credentials()
+
+    # Base64 encode the salt
+    salt_str = base64.b64encode(salt).decode('utf-8')
+
     hashed_password = encoder.hash_data(password, salt)
+
     with open(file_path, 'a', newline='') as csvfile:
         fieldnames = ['username', 'password', 'salt']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if csvfile.tell() == 0:
             writer.writeheader()
-        writer.writerow({'username': username, 'password': hashed_password.decode('utf-8'), 'salt': salt.decode('utf-8')})
+        writer.writerow({'username': username, 'password': hashed_password, 'salt': salt_str})
+
     print("Credentials saved!")
 
 
@@ -145,17 +151,25 @@ def read_credentials():
     with open(file_path, "r", newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            credentials.append({'username': row['username'], 'password': row['password'], 'salt': row['salt']})
+            salt = base64.b64decode(row['salt'])
+            credentials.append({'username': row['username'], 'password': row['password'], 'salt': salt})
     return credentials
 
 
-
-def authenticate_user(users,username, password, salt):
-    if username in users:
-        stored_password = users[username]['password']
-        input_password = encoder.hash_data(password, salt)
-        if stored_password == input_password:
+def authenticate_user(users, username, entered_password, salt):
+    user_exists = any(user['username'] == username for user in users)
+    if user_exists:
+        user_data = next(user for user in users if user['username'] == username)
+        print(entered_password)
+        print(salt)
+        input_password_hashed = encoder.hash_data(entered_password, salt)
+        stored_password_hashed = user_data['password']
+        print(stored_password_hashed)
+        print(input_password_hashed)
+        if stored_password_hashed == input_password_hashed:
             return True
+        return False
+    else:
         return False
 
 
@@ -170,14 +184,18 @@ def login():
             username = input("Username: ")
             password = input("Password: ")
             credentials = read_credentials()
-            if username in credentials:
-                salt = credentials[username]['salt']
-                print(salt)
+            user_exists = any(user['username'] == username for user in credentials)
+            if user_exists:
+                user_data = next(user for user in credentials if user['username'] == username)
+                salt = user_data['salt']
+                stored_password = user_data['password']
                 if authenticate_user(credentials, username, password, salt):
-                    print("Login successful!")
+                    print(f"Welcome, {username}!")
                     break
+                else:
+                    print("Login failed. Invalid password.")
             else:
-                print("Login failed. Invalid username or password.")
+                print("Login failed. Invalid username.")
         elif response == '2':
             username = input("Username: ")
             password = input("Password: ")
