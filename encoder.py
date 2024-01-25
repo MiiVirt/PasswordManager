@@ -22,20 +22,22 @@ def generate_key(password, salt):
 def hash_data(data, salt):
     data_bytes = data.encode('utf-8')
     data_with_salt = data_bytes + salt
+    print(salt)
+    print(data)
     hashed_data = hashlib.sha256(data_with_salt).hexdigest()
     return hashed_data
 
 def encrypt_data(data, key, iv):
-    print("Data before encryption", data)
+    #print("Data before encryption", data)
     cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
     encryptor = cipher.encryptor()
     data = data.encode('utf-8')
     encrypted_data = encryptor.update(data) + encryptor.finalize()
-    print("Encrypted data", encrypted_data)
+    #print("Encrypted data", encrypted_data)
     return encrypted_data
 
 def decrypt_data(encrypted_data, key, iv):
-    print("Encrypted data before decryption", encrypted_data)
+    #print("Encrypted data before decryption", encrypted_data)
     cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
     decryptor = cipher.decryptor()
     decrypted_data = decryptor.update(encrypted_data) + decryptor.finalize()
@@ -49,21 +51,24 @@ def main():
     iv = generate_random_16byte()
 
     hashed_data = hash_data(data_to_encrypt, salt)
+    print("hashed data", hashed_data)
     encrypted_data = encrypt_data(hashed_data, key, iv)
+    print("encrypted data", encrypted_data)
 
-    print("Encryption was successful.")
+    #print("Encryption was successful.")
 
     decrypted_data = decrypt_data(encrypted_data, key, iv).decode('utf-8')
-    decrypted_data_hashed = hash_data(data_to_encrypt, salt)
-    print("Decryption was successfull.")
-
-    print("hashed data", hashed_data)
+    #print("Decryption was successfull.")
     print("decrypted data", decrypted_data)
 
+    if hashed_data == hash_data(password, salt):
+        print("Success")
+"""
     if decrypted_data == hashed_data:
         print("Data integrity verified.")
     else:
         print("Data integrity compromised.")
+"""
 
 if __name__ == "__main__":
     main()
