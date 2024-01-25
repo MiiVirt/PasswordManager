@@ -1,9 +1,10 @@
-import csv, sys, ast, base64
+import csv, sys, base64
 from Password_Generator import generator
 from Encoder import encoder
 from cryptography.fernet import Fernet
 
-#TODO add master password system with PassCrypt
+#TODO Make so that each admin user has their different passwords file and only access to their own
+#TODO use encoder encryption and decryption
 #TODO separate credentials and key to different save locations for security
 #TODO Commandline implementation with getpass to hide passwords
 #TODO GUI
@@ -128,20 +129,14 @@ def check_password_strength(password):
 
 def save_credentials(username, password, salt):
     file_path = "credentials.csv"
-    credentials = read_credentials()
-
-    # Base64 encode the salt
     salt_str = base64.b64encode(salt).decode('utf-8')
-
     hashed_password = encoder.hash_data(password, salt)
-
     with open(file_path, 'a', newline='') as csvfile:
         fieldnames = ['username', 'password', 'salt']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if csvfile.tell() == 0:
             writer.writeheader()
         writer.writerow({'username': username, 'password': hashed_password, 'salt': salt_str})
-
     print("Credentials saved!")
 
 
@@ -160,12 +155,8 @@ def authenticate_user(users, username, entered_password, salt):
     user_exists = any(user['username'] == username for user in users)
     if user_exists:
         user_data = next(user for user in users if user['username'] == username)
-        print(entered_password)
-        print(salt)
         input_password_hashed = encoder.hash_data(entered_password, salt)
         stored_password_hashed = user_data['password']
-        print(stored_password_hashed)
-        print(input_password_hashed)
         if stored_password_hashed == input_password_hashed:
             return True
         return False
@@ -174,7 +165,6 @@ def authenticate_user(users, username, entered_password, salt):
 
 
 def login():
-    #users = read_credentials()
     while True:
         print("Press '1' to login")
         print("Press '2' to create a new user")
@@ -188,7 +178,6 @@ def login():
             if user_exists:
                 user_data = next(user for user in credentials if user['username'] == username)
                 salt = user_data['salt']
-                stored_password = user_data['password']
                 if authenticate_user(credentials, username, password, salt):
                     print(f"Welcome, {username}!")
                     break
@@ -199,6 +188,7 @@ def login():
         elif response == '2':
             username = input("Username: ")
             password = input("Password: ")
+            check_password_strength(password)
             salt = encoder.generate_random_16byte()
             save_credentials(username, password, salt)
             print("User created successfully!")
