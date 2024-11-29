@@ -123,8 +123,9 @@ def check_password_strength(password):
     if any(char.islower() for char in password) == False: #Check if there's a lowercase letter in password
         print("There needs to be at least one lowercase letter in password!")
         error += 1
-    if error > 0: #If there has been at least one problem with the password, program closes.
-        sys.exit()
+    if error > 0: #If there has been at least one problem with the password
+        #sys.exit()
+        return error
 
 
 def save_credentials(username, password, salt):
@@ -199,51 +200,73 @@ def login():
 
 def main():
     login()
-    print("Press '1' to save new credentials")
-    print("Press '2' to see all currently saved credentials")
-    print("Press '3' to edit an existing credential")
-    print("Press '4' to delete existing credentials")
-    response1 = input(": ")
-    if response1 == '1':
-        title = input("Type the title: ")
-        username = input("Type the username: ")
-        response2 = input("Would you like to automatically generated password? (y/n)").lower()
-        if response2 == 'n':
-            password = input("type the password: ")
-        elif response2 == 'y':
-            count_alphabet, count_numbers, count_symbols = generator.generate_random_numbers()
-            password = generator.password_generator(count_alphabet, count_numbers, count_symbols)
-        check_password_strength(password)
-        key = generate_key()
-        encrypted_data = encrypt_data(password, key)
-        save_password(title, username, encrypted_data, key)
-    elif response1 == '2':
-        data_list = read_passwords()
-        for data_set in data_list:
-            decrypted_password = decrypt_data(data_set['Password'], data_set['Key'])
-            print(f"Title: {data_set['Title']}, Username: {data_set['Username']}, Password: {decrypted_password.decode('utf-8')}")
-    elif response1 == '3':
-        response2 = input("Press '1' to edit username and password, '2' to edit username or '3' to edit password: ")
-        if response2 == '1':
-            update_title = input("What credential would you like to edit? ")
-            new_username = input("Enter the new username: ")
-            new_password = input("Enter the new password: ")
-            check_password_strength(new_password)
-            edit_username(update_title, new_username)
-            edit_passwords(update_title, new_password)
-        elif response2 == '2':
-            update_title = input("What credential would you like to edit? ")
-            new_username = input("Enter the new username: ")
-            edit_username(update_title, new_username)
-        elif response2 == '3':
-            update_title = input("What credential would you like to edit? ")
-            new_password = input("Enter the new password: ")
-            check_password_strength(new_password)
-            edit_passwords(update_title, new_password)
-    elif response1 == '4':
-        title = input("What credentials would you like to delete? ")
-        delete_password(title)
+    while True:
+        print("Press '1' to save new credentials")
+        print("Press '2' to see all currently saved credentials")
+        print("Press '3' to edit an existing credential")
+        print("Press '4' to delete existing credentials")
+        print("Press '5' to quit")
+        response1 = input(": ")
 
+        while True:
+            if response1 == '1':
+                title = input("Type the title: ")
+                username = input("Type the username: ")
+                response2 = input("Would you like to automatically generated password? (y/n)").lower()
+                if response2 == 'n':
+                    password = input("type the password: ")
+                    errors = int(check_password_strength(password))
+                elif response2 == 'y':
+                    count_alphabet, count_numbers, count_symbols = generator.generate_random_numbers()
+                    password = generator.password_generator(count_alphabet, count_numbers, count_symbols)
+                    errors = 0
+
+                if errors > 0:
+                    print("There were: ", errors, " errors. ")
+                    response3 = input("Would you like to save the password (1), create another (2) or quit (3) ")
+                    if response3 == '1':
+                        key = generate_key()
+                        encrypted_data = encrypt_data(password, key)
+                        save_password(title, username, encrypted_data, key)
+                        break
+                    elif response3 == '2':
+                        continue
+                    elif response3 == '3':
+                        sys.exit()
+
+                key = generate_key()
+                encrypted_data = encrypt_data(password, key)
+                save_password(title, username, encrypted_data, key)
+                break
+            break
+        if response1 == '2':
+            data_list = read_passwords()
+            for data_set in data_list:
+                decrypted_password = decrypt_data(data_set['Password'], data_set['Key'])
+                print(f"Title: {data_set['Title']}, Username: {data_set['Username']}, Password: {decrypted_password.decode('utf-8')}")
+        elif response1 == '3':
+            response2 = input("Press '1' to edit username and password, '2' to edit username or '3' to edit password: ")
+            if response2 == '1':
+                update_title = input("What credential would you like to edit? ")
+                new_username = input("Enter the new username: ")
+                new_password = input("Enter the new password: ")
+                check_password_strength(new_password)
+                edit_username(update_title, new_username)
+                edit_passwords(update_title, new_password)
+            elif response2 == '2':
+                update_title = input("What credential would you like to edit? ")
+                new_username = input("Enter the new username: ")
+                edit_username(update_title, new_username)
+            elif response2 == '3':
+                update_title = input("What credential would you like to edit? ")
+                new_password = input("Enter the new password: ")
+                check_password_strength(new_password)
+                edit_passwords(update_title, new_password)
+        elif response1 == '4':
+            title = input("What credentials would you like to delete? ")
+            delete_password(title)
+        elif response1 == '5':
+            sys.exit()
 
 if __name__ == "__main__":
     main()
